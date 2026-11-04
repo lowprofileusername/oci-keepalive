@@ -318,15 +318,18 @@ EOF
 }
 
 check_agent() {
-  # 闲置判定依赖 Oracle Cloud Agent 上报的指标，它没在跑就等于"没数据"
+  # 只做提示，不影响安装和运行。
+  # OCI 控制台里的 CPU/内存指标（oci_computeagent）由 Oracle Cloud Agent 上报；
+  # 没有 Agent（例如自己重装的系统）时，Oracle 能直接看到的只有 VNIC 网络流量（oci_vcn）。
   # 先存进变量再匹配：避免 pipefail 下 grep -q 提前退出导致 SIGPIPE 误判
   local units_list
   units_list="$(systemctl list-units --type=service --state=active --no-legend 2>/dev/null || true)"
   if systemctl is-active --quiet oracle-cloud-agent 2>/dev/null \
      || [[ "$units_list" == *snap.oracle-cloud-agent* ]]; then
-    echo "Oracle Cloud Agent：运行中 ✓"
+    echo "Oracle Cloud Agent：运行中（控制台可看到 CPU/内存指标）"
   else
-    echo "⚠ 未检测到 Oracle Cloud Agent 在运行。请勿卸载它，并到控制台 实例 → Oracle Cloud Agent 中确认「Compute Instance Monitoring」插件已启用。"
+    echo "Oracle Cloud Agent：未安装（不影响本脚本运行）"
+    echo "  注意：控制台不会有 CPU/内存指标，只有网络流量指标；Oracle 在没有 CPU 数据时如何判定闲置，官方未说明。"
   fi
 }
 

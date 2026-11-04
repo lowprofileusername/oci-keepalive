@@ -48,7 +48,7 @@ sudo CPU_TARGET=30 MEM_TARGET=30 bash oci-keepalive.sh install
 sudo bash oci-keepalive.sh status
 ```
 
-会显示：各服务状态、当前 CPU/内存占用、下次网络任务时间、最近 3 次网络任务结果（`OK` / `FAIL` / `WARN`）、Oracle Cloud Agent 是否在运行。
+会显示：各服务状态、当前 CPU/内存占用、下次网络任务时间、最近 3 次网络任务结果（`OK` / `FAIL` / `WARN`）、是否装有 Oracle Cloud Agent（仅提示）。
 
 ## 确认真的达标
 
@@ -59,7 +59,14 @@ sudo bash oci-keepalive.sh status
 
 E2.1.Micro 是可突发机型（基线 1/8 OCPU），控制台数值如果偏低，把 `CPU_TARGET` 调高后重新 `install`。
 
-监控数据依赖 **Oracle Cloud Agent** 的 Compute Instance Monitoring 插件，请保持启用。
+## 没有 Oracle Cloud Agent（自己重装的系统）
+
+脚本照常工作，不需要 Agent。但要知道：
+
+- 控制台的 CPU / 内存指标（`oci_computeagent`）是由 Oracle Cloud Agent 上报的。没有 Agent，这两项**控制台里就没有数据**，上面"确认达标"的 CPU/内存检查做不了。
+- Oracle 不依赖 Agent 也能看到的是 VNIC 网络流量（`oci_vcn`，在 实例 → 挂接的 VNIC → Metrics）。
+- 没有 CPU 数据时 Oracle 怎么判定闲置，**官方没有说明**："没数据"不等于"不会被回收"。
+- 脚本仍然在系统内把 CPU/内存保持在目标值，万一 Oracle 有别的采集方式，这部分照样有效。
 
 ## 网络配置
 
